@@ -1,3 +1,13 @@
+function removeActiveClass() {
+  const activeButtons = document.getElementsByClassName("active");
+
+  for (let btn of activeButtons) {
+    btn.classList.remove("active");
+  }
+
+  // console.log(activeButtons);
+}
+
 function loadCategory() {
   // 1- fetch the data
   fetch("https://openapi.programming-hero.com/api/phero-tube/categories")
@@ -10,7 +20,11 @@ function loadCategory() {
 function loadVideos() {
   fetch("https://openapi.programming-hero.com/api/phero-tube/videos")
     .then((res) => res.json())
-    .then((data) => displayVideos(data.videos));
+    .then((data) => {
+      removeActiveClass();
+      document.getElementById("btn-all").classList.add("active");
+      displayVideos(data.videos);
+    });
 }
 
 const loadCategoryVideos = (id) => {
@@ -21,7 +35,14 @@ const loadCategoryVideos = (id) => {
 
   fetch(url)
     .then((res) => res.json())
-    .then((data) => displayVideos(data.category));
+    .then((data) => {
+      removeActiveClass();
+
+      const clickedButton = document.getElementById(`btn-${id}`);
+      clickedButton.classList.add("active");
+      // console.log(clickedButton);
+      displayVideos(data.category);
+    });
 };
 
 function displaycategories(categories) {
@@ -36,7 +57,7 @@ function displaycategories(categories) {
     const categoryDiv = document.createElement("div");
 
     categoryDiv.innerHTML = `
-    <button onclick="loadCategoryVideos(${cat.category_id})" class="btn btn-sm bg-[#25252515] text-[#25252570] hover:bg-[#FF1F3D] hover:text-white">${cat.category}</button>
+    <button id="btn-${cat.category_id}" onclick="loadCategoryVideos(${cat.category_id})" class="btn btn-sm bg-[#25252515] text-[#25252570] hover:bg-[#FF1F3D] hover:text-white">${cat.category}</button>
     `;
 
     // Append the Element
@@ -48,6 +69,18 @@ const displayVideos = (videos) => {
   const videoContainer = document.getElementById("video-container");
 
   videoContainer.innerHTML = "";
+
+  if (videos.length == 0) {
+    videoContainer.innerHTML = `
+    <div class="py-20 col-span-4 flex flex-col justify-center items-center">
+        <img class="w-[120px]" src="./assets/Icon.png" alt="" />
+        <h2 class="text-2xl font-bold">
+          Oops!! Sorry, There is no content here
+        </h2>
+      </div>
+    `;
+    return;
+  }
 
   videos.forEach((video) => {
     // console.log(video);
