@@ -1,3 +1,12 @@
+const showLoader = () => {
+  document.getElementById("loader").classList.remove("hidden");
+  document.getElementById("video-container").classList.add("hidden");
+};
+const hideLoader = () => {
+  document.getElementById("loader").classList.add("hidden");
+  document.getElementById("video-container").classList.remove("hidden");
+};
+
 function removeActiveClass() {
   const activeButtons = document.getElementsByClassName("active");
 
@@ -17,8 +26,11 @@ function loadCategory() {
     .then((data) => displaycategories(data.categories));
 }
 
-function loadVideos() {
-  fetch("https://openapi.programming-hero.com/api/phero-tube/videos")
+function loadVideos(searchText = "") {
+  showLoader();
+  fetch(
+    `https://openapi.programming-hero.com/api/phero-tube/videos?title=${searchText}`
+  )
     .then((res) => res.json())
     .then((data) => {
       removeActiveClass();
@@ -28,6 +40,7 @@ function loadVideos() {
 }
 
 const loadCategoryVideos = (id) => {
+  showLoader();
   const url = `
   https://openapi.programming-hero.com/api/phero-tube/category/${id}
   `;
@@ -52,25 +65,6 @@ const loadVideoDetails = (videoId) => {
     .then((res) => res.json())
     .then((data) => displayVideoDetails(data.video));
 };
-
-// {
-//     "category_id": "1001",
-//     "video_id": "aaaa",
-//     "thumbnail": "https://i.ibb.co/L1b6xSq/shape.jpg",
-//     "title": "Shape of You",
-//     "authors": [
-//         {
-//             "profile_picture": "https://i.ibb.co/D9wWRM6/olivia.jpg",
-//             "profile_name": "Olivia Mitchell",
-//             "verified": ""
-//         }
-//     ],
-//     "others": {
-//         "views": "100K",
-//         "posted_date": "16278"
-//     },
-//     "description": "Dive into the rhythm of 'Shape of You,' a captivating track that blends pop sensibilities with vibrant beats. Created by Olivia Mitchell, this song has already gained 100K views since its release. With its infectious melody and heartfelt lyrics, 'Shape of You' is perfect for fans looking for an uplifting musical experience. Let the music take over as Olivia's vocal prowess and unique style create a memorable listening journey."
-// }
 
 const displayVideoDetails = (video) => {
   // console.log(video);
@@ -125,27 +119,9 @@ const displayVideos = (videos) => {
         </h2>
       </div>
     `;
+    hideLoader();
     return;
   }
-
-  // {
-  //     "category_id": "1001",
-  //     "video_id": "aaaa",
-  //     "thumbnail": "https://i.ibb.co/L1b6xSq/shape.jpg",
-  //     "title": "Shape of You",
-  //     "authors": [
-  //         {
-  //             "profile_picture": "https://i.ibb.co/D9wWRM6/olivia.jpg",
-  //             "profile_name": "Olivia Mitchell",
-  //             "verified": ""
-  //         }
-  //     ],
-  //     "others": {
-  //         "views": "100K",
-  //         "posted_date": "16278"
-  //     },
-  //     "description": "Dive into the rhythm of 'Shape of You,' a captivating track that blends pop sensibilities with vibrant beats. Created by Olivia Mitchell, this song has already gained 100K views since its release. With its infectious melody and heartfelt lyrics, 'Shape of You' is perfect for fans looking for an uplifting musical experience. Let the music take over as Olivia's vocal prowess and unique style create a memorable listening journey."
-  // }
 
   videos.forEach((video) => {
     // console.log(video);
@@ -155,7 +131,9 @@ const displayVideos = (videos) => {
     videoCard.innerHTML = `
      <div class="card bg-base-100">
         <figure class="relative">
-          <img class="w-full h-[150px] object-cover" src="${video.thumbnail}" alt="Shoes" />
+          <img class="w-full h-[150px] object-cover" src="${
+            video.thumbnail
+          }" alt="Shoes" />
           <span
             class="absolute bottom-2 right-2 text-white bg-black px-2 text-sm rounded"
             >3hrs 56 min ago</span
@@ -179,20 +157,27 @@ const displayVideos = (videos) => {
             <h2 class="text-sm font-semibold">${video.title}</h2>
             <p class="text-sm text-gray-400 flex gap-1">
               ${video.authors[0].profile_name}
-              <img
-                class="w-5 h-5"
-                src="https://img.icons8.com/?size=48&id=98A4yZTt9abw&format=png"
-                alt=""
-              />
+               ${
+                 video.authors[0].verified == true
+                   ? `<img class="w-5 h-5" src="https://img.icons8.com/?size=48&id=98A4yZTt9abw&format=png" alt="" />`
+                   : ``
+               }
+
             </p>
             <p class="text-sm text-gray-400">${video.others.views} views</p>
           </div>
         </div>
-        <button onclick="loadVideoDetails('${video.video_id}')" class="btn btn-block">Show Details</button>
+        <button onclick="loadVideoDetails('${
+          video.video_id
+        }')" class="btn btn-block">Show Details</button>
       </div>
     `;
     videoContainer.append(videoCard);
   });
+  hideLoader();
 };
-
+document.getElementById("search-input").addEventListener("keyup", (e) => {
+  const input = e.target.value;
+  loadVideos(input);
+});
 loadCategory();
